@@ -124,6 +124,11 @@ h1 { font-size: clamp(3rem, 8vw, 6.4rem); line-height: .95; letter-spacing: -.04
 .doc li { margin-bottom: .55em; }
 .doc pre { background: var(--abyss); color: #e8f6f8; border-radius: 18px; padding: 16px 20px; overflow-x: auto; font-size: .85rem; line-height: 1.5; margin: 0 0 1em; }
 .doc pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
+.ca { background: #fff; border: 2px dashed var(--sea); border-radius: 22px; padding: 18px 22px; margin: 0 0 1.2em; }
+.ca .tag { color: var(--sea); }
+.ca-val { margin: 4px 0 8px; font: 800 1.5rem/1.2 var(--display); letter-spacing: -.02em; color: var(--ink); word-break: break-all; }
+.ca-val.mono { font-family: var(--mono); font-size: .95rem; font-weight: 600; letter-spacing: 0; }
+.ca-note { margin: 0; font-size: .95rem; opacity: .85; }
 .toc { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.4em; }
 .toc a { padding: 8px 16px; border-radius: 999px; background: #fff; text-decoration: none; font: 600 .92rem var(--display); box-shadow: 0 6px 18px rgba(11, 58, 74, .08); transition: background-color 300ms var(--ease); }
 .toc a:hover { background: var(--aqua); }
