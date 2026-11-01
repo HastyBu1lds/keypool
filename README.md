@@ -59,4 +59,4 @@ The site's effects are plain-JavaScript rewrites of ideas from Magic UI (Ripple,
 
 ## Licence
 
-No licence has been added yet. The source is public so it can be read and checked.
+MIT. See [LICENSE](LICENSE). The software is provided as is, with no warranty: it is not audited, so use it at your own risk.
