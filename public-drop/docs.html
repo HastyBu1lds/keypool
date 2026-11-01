@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Docs - how Keypool works and how to check it</title>
+<meta name="description" content="How Keypool makes wallets, what the backup file contains, what never leaves your browser, and how to check each claim yourself.">
+<link rel="canonical" href="https://keypool.fun/docs.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Keypool">
+<meta property="og:url" content="https://keypool.fun/docs.html">
+<meta property="og:title" content="Keypool docs: how it works and how to check it">
+<meta property="og:description" content="How Keypool makes wallets, what the backup file contains, and how to check each claim yourself.">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b6173'/%3E%3Cg transform='translate(32 32) scale(.82) translate(-32 -31)'%3E%3Cpath fill='%23fff' fill-rule='evenodd' d='M32 5C32 5 12 26 12 38a20 20 0 0 0 40 0C52 26 32 5 32 5Z M29.2 42.78A5.2 5.2 0 1 1 34.8 42.78L36.4 53H27.6Z'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preload" href="fonts/gabarito.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<svg class="sprites" width="0" height="0" aria-hidden="true" focusable="false">
+  <symbol id="drop" viewBox="0 0 64 64">
+    <path fill="currentColor" fill-rule="evenodd" d="M32 5C32 5 12 26 12 38a20 20 0 0 0 40 0C52 26 32 5 32 5Z M29.2 42.78A5.2 5.2 0 1 1 34.8 42.78L36.4 53H27.6Z"/>
+    <path class="drop-ripple" fill="none" stroke="var(--aqua)" stroke-width="2.4" stroke-linecap="round" d="M20 58q12 4 24 0"/>
+  </symbol>
+</svg>
+
+<header class="top">
+  <div class="wrap bar">
+    <a class="mark" href="index.html" aria-label="Keypool home"><svg class="logo" aria-hidden="true"><use href="#drop"/></svg><span>keypool</span></a>
+    <nav aria-label="Sections">
+      <a href="index.html#why">Why</a>
+      <a href="index.html#make">Make wallets</a>
+      <a href="index.html#faq">Questions</a>
+      <a href="docs.html" aria-current="page">Docs</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="doc-hero">
+    <div class="wrap narrow">
+      <p class="kicker">Docs</p>
+      <h1 class="doc-h1">How Keypool works, and how to check it.</h1>
+      <p class="lead">Every claim on this site, explained, with a way to test it yourself. Keypool is not audited, so please read the limits at the bottom.</p>
+    </div>
+  </section>
+  <div class="wave dark-to-light" aria-hidden="true"><svg viewBox="0 0 1440 80" preserveAspectRatio="none"><path d="M0 38C200 80 420 4 720 36S1240 76 1440 28V80H0Z"/></svg></div>
+
+  <section class="sec light doc">
+    <div class="wrap narrow">
+
+      <nav class="toc" aria-label="On this page">
+        <a href="#made">How a wallet is made</a>
+        <a href="#file">The backup file</a>
+        <a href="#network">What leaves your browser</a>
+        <a href="#check">Check it yourself</a>
+        <a href="#tests">Tests</a>
+        <a href="#limits">Limits and risks</a>
+      </nav>
+
+      <h2 id="made">How a wallet is made</h2>
+      <p>Each wallet is one random 32-byte value, made in your browser. There is no seed phrase, no master key and no key derivation tree: every wallet is independent.</p>
+      <ol>
+        <li>The browser's secure random generator (<code>crypto.getRandomValues</code>) gives 32 random bytes.</li>
+        <li>Those bytes are hashed with SHA-256 together with a pool of mouse-movement samples and a counter: <code>sha256(random &#8214; pool &#8214; counter)</code>. The mouse samples can only add randomness, never remove it, because the browser's random bytes are always part of the input.</li>
+        <li>The 32-byte result is an Ed25519 seed. The public key is derived from it with the standard Ed25519 algorithm (the <code>@noble/curves</code> library).</li>
+        <li>The <strong>wallet address</strong> is the public key written in base58, which is how Solana shows addresses.</li>
+        <li>The <strong>private key</strong> you can copy is the 64 bytes <code>seed &#8214; public key</code> in base58. This is the format Phantom, Solflare and Backpack accept under &ldquo;Import private key&rdquo;. &ldquo;Copy as keypair.json&rdquo; gives the same 64 bytes as a list of numbers, for the Solana command line.</li>
+      </ol>
+
+      <h2 id="file">The backup file</h2>
+      <p>The file is plain JSON. With no passphrase it looks like this (shortened):</p>
+      <pre><code>{
+  "format": "keypool-1",
+  "created": "2026-11-01T12:00:00.000Z",
+  "note": "Random keys, no seed phrase. This file is the only backup. Keep copies.",
+  "keys": [ { "type": "sol", "address": "...", "secret": "..." } ]
+}</code></pre>
+      <p>When you open a file, Keypool re-derives every address from its secret and refuses the file if any address does not match.</p>
+      <h3>With a passphrase</h3>
+      <p>The passphrase is turned into a key with <strong>scrypt</strong> (N=65536, r=8, p=1, a random 16-byte salt), then the whole file is encrypted with <strong>AES-256-GCM</strong> through the browser's WebCrypto, with a random 12-byte nonce. The file format name is authenticated, so a changed file fails to open. The result is a file with the format <code>keypool-1-encrypted</code>.</p>
+      <p>If you forget the passphrase, nobody can open the file, including us. We never see it.</p>
+      <h3>One wallet per file</h3>
+      <p>&ldquo;Save only this wallet&rdquo; writes a file with just that wallet. A leaked file then exposes one wallet, not all of them. Your full backup file is still worth keeping.</p>
+
+      <h2 id="network">What leaves your browser</h2>
+      <p><strong>Nothing is meant to.</strong> Keys are made and kept in the page. There is no account, no server that receives keys, no analytics and no third-party scripts. Fonts and the script are served from the same site.</p>
+      <p>This is enforced by the page's Content Security Policy, which the browser applies:</p>
+      <pre><code>default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:;
+font-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'</code></pre>
+      <p><code>connect-src 'none'</code> means the page is not allowed to make any network request (no fetch, no XHR, no WebSocket). The one exception you control is the &ldquo;View on Solscan&rdquo; link: if you click it, a new tab opens Solscan and that site learns the address.</p>
+
+      <h2 id="check">Check it yourself</h2>
+      <ol>
+        <li><strong>Watch the network.</strong> Open your browser's developer tools, go to the Network tab, reload, make some wallets. You should see only this site's own files (the page, its stylesheet, its script and fonts), and nothing after you press &ldquo;Make wallets&rdquo;.</li>
+        <li><strong>Try to break the policy.</strong> In the Console tab, run <code>fetch('https://example.com')</code>. The browser should refuse it with a Content Security Policy error.</li>
+        <li><strong>Read the policy.</strong> In the Network tab, click the page and look at the response headers for <code>content-security-policy</code>. Or run <code>curl -I https://keypool.fun</code>.</li>
+        <li><strong>Go offline.</strong> Save this site's page, disconnect from the internet, and open it from your own disk. Make a wallet. Everything still works, because nothing needed a server.</li>
+        <li><strong>Read the code.</strong> The source is public at <a href="https://github.com/HastyBu1lds/keypool" target="_blank" rel="noopener noreferrer">github.com/HastyBu1lds/keypool</a>. Key generation and the file format are in <code>src/core.js</code>, and the page's logic is in <code>src-drop/app.js</code>. The script this site serves is a minified bundle built from those files with <code>npm run build</code>.</li>
+        <li><strong>Check an address.</strong> Show a wallet's private key, paste it into any other wallet app (Phantom, Solflare) or into the &ldquo;Check a private key&rdquo; box, and confirm the same address comes out.</li>
+      </ol>
+
+      <h2 id="tests">Tests</h2>
+      <p>The key code has automated tests. They check the Ed25519 code against the official RFC 8032 test vector, check that 25 generated keys are all different and can be re-imported, and check the file format both plain and encrypted, including that tampered files and wrong passphrases are rejected.</p>
+
+      <h2 id="limits">Limits and risks</h2>
+      <ul>
+        <li><strong>Not audited.</strong> No independent security review has been done. Try a small amount first, send it out again, and only then use more.</li>
+        <li><strong>No recovery.</strong> Lose every copy of your backup file (and any passphrase) and the coins are gone. Nobody can reset it. Make a new backup after adding wallets.</li>
+        <li><strong>The file is the thing to guard.</strong> A backup file holds copies of your keys. Lock it with a passphrase, keep copies private, or save wallets one at a time.</li>
+        <li><strong>Your device is the weak point.</strong> Malware, a hostile browser extension or someone looking at your screen can read keys in any wallet, including this one. Keypool cannot protect a compromised computer.</li>
+        <li><strong>Printing leaves copies.</strong> Printing paper wallets puts private keys on paper and in the printer's queue.</li>
+        <li><strong>Solana only,</strong> and the file format is Keypool's own. It is not Bitcoin's <code>wallet.dat</code>.</li>
+        <li><strong>No seed phrase is a trade-off, not magic.</strong> You gain independent keys and no master phrase. You give up the ability to rebuild everything from words.</li>
+      </ul>
+      <p class="small-print">Questions or something that looks wrong? Check the claims above first, then say what you found.</p>
+    </div>
+  </section>
+</main>
+
+<div class="wave light-to-dark" aria-hidden="true"><svg viewBox="0 0 1440 80" preserveAspectRatio="none"><path d="M0 40C260 4 500 76 780 40S1200 8 1440 44V80H0Z"/></svg></div>
+<footer class="foot">
+  <div class="wrap foot-in">
+    <span class="mark small"><svg class="logo" aria-hidden="true"><use href="#drop"/></svg><span>keypool</span></span>
+    <span>network: none</span>
+    <a href="https://github.com/HastyBu1lds/keypool" target="_blank" rel="noopener noreferrer">Source code</a>
+    <a href="index.html">Back to Keypool</a>
+  </div>
+</footer>
+</body>
+</html>

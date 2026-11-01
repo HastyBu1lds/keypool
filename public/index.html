@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Keypool - wallets with no seed phrase</title>
+<meta name="description" content="Make Solana wallets with no seed phrase, the way the first Bitcoin wallets worked: random keys saved in a file. Runs in your browser, never connects to a server.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23008080'/%3E%3Crect x='2' y='5' width='6' height='6' fill='%23f7931a'/%3E%3Crect x='4' y='7' width='2' height='2' fill='%23008080'/%3E%3Crect x='8' y='7' width='7' height='2' fill='%23f7931a'/%3E%3Crect x='12' y='9' width='1' height='2' fill='%23f7931a'/%3E%3Crect x='14' y='9' width='1' height='2' fill='%23f7931a'/%3E%3C/svg%3E">
+<link rel="preload" href="fonts/vt323.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<svg class="sprites" aria-hidden="true" focusable="false">
+  <symbol id="i-key" viewBox="0 0 16 16" shape-rendering="crispEdges">
+    <path fill="#000" d="M1 4h8v1h-8zM1 11h8v1h-8zM0 5h1v6h-1zM9 5h1v1h-1zM9 10h1v1h-1zM10 6h5v1h-5zM10 9h5v1h-5zM15 7h1v2h-1zM12 10h1v3h-1zM14 10h1v2h-1zM13 12h1v1h-1z"/>
+    <path fill="#f7931a" d="M1 5h8v1h-1v4h1v1h-8zM10 7h5v2h-5zM12 9h1v1h-1zM14 9h1v1h-1z"/>
+    <path fill="#008080" d="M3 6h3v4h-3z"/>
+    <path fill="#ffd27a" d="M1 5h8v1h-8z"/>
+  </symbol>
+  <symbol id="i-doc" viewBox="0 0 16 16" shape-rendering="crispEdges">
+    <path fill="#000" d="M2 0h9v1h-9zM1 1h1v14h-1zM2 15h12v1h-12zM14 4h1v11h-1zM11 0h1v1h-1zM12 1h1v1h-1zM13 2h1v1h-1zM14 3h1v1h-1z"/>
+    <path fill="#fff" d="M2 1h9v3h3v11h-12z"/>
+    <path fill="#808080" d="M4 6h8v1h-8zM4 8h8v1h-8zM4 10h8v1h-8zM4 12h5v1h-5z"/>
+  </symbol>
+  <symbol id="i-lens" viewBox="0 0 16 16" shape-rendering="crispEdges">
+    <path fill="#000" d="M4 1h5v1h-5zM2 2h2v1h-2zM9 2h2v1h-2zM1 3h1v5h-1zM11 3h1v5h-1zM2 8h2v1h-2zM9 8h2v1h-2zM4 9h5v1h-5zM10 9h2v1h-2zM11 10h2v1h-2zM12 11h2v1h-2zM13 12h2v2h-2z"/>
+    <path fill="#c0e8ff" d="M4 2h5v1h1v5h-1v1h-5v-1h-1v-5h1z"/>
+    <path fill="#808080" d="M11 10h1v1h1v1h1v1h-2v-1h-1z"/>
+  </symbol>
+  <symbol id="i-coin" viewBox="0 0 16 16" shape-rendering="crispEdges">
+    <path fill="#7a4a00" d="M5 1h6v1h-6zM3 2h2v1h-2zM11 2h2v1h-2zM2 3h1v2h-1zM13 3h1v2h-1zM1 5h1v6h-1zM14 5h1v6h-1zM2 11h1v2h-1zM13 11h1v2h-1zM3 13h2v1h-2zM11 13h2v1h-2zM5 14h6v1h-6z"/>
+    <path fill="#f7931a" d="M5 2h6v1h2v2h1v6h-1v2h-2v1h-6v-1h-2v-2h-1v-6h1v-2h2z"/>
+    <path fill="#ffd27a" d="M4 4h2v1h-2zM3 5h1v2h-1z"/>
+    <path fill="#7a4a00" d="M7 4h2v8h-2zM5 6h6v1h-6zM5 9h6v1h-6z"/>
+  </symbol>
+</svg>
+
+<canvas id="wall" aria-hidden="true"></canvas>
+
+<noscript>
+  <div class="noscript">Keypool makes keys with JavaScript in your own browser. Turn JavaScript on for this page. It never talks to a server.</div>
+</noscript>
+
+<main id="desktop">
+  <nav class="icons" aria-label="Desktop">
+    <button class="icon" data-open="main"><svg class="px"><use href="#i-key"/></svg><span>Keypool</span></button>
+    <button class="icon" data-open="readme"><svg class="px"><use href="#i-doc"/></svg><span>readme.txt</span></button>
+    <button class="icon" data-open="import"><svg class="px"><use href="#i-lens"/></svg><span>Check a private key</span></button>
+  </nav>
+
+  <!-- ===== main window ===== -->
+  <section class="win" id="w-main" aria-labelledby="t-main" hidden>
+    <header class="titlebar">
+      <svg class="px sm"><use href="#i-key"/></svg>
+      <h1 id="t-main">Keypool</h1>
+      <button class="tb" data-act="min" aria-label="Minimize">_</button>
+      <button class="tb" data-act="max" aria-label="Maximize">&#9633;</button>
+      <button class="tb" data-act="close" aria-label="Close">x</button>
+    </header>
+    <div class="menubar" role="menubar">
+      <div class="menu"><button class="mbtn" aria-haspopup="true">File</button>
+        <ul class="drop" role="menu" hidden>
+          <li><button role="menuitem" data-cmd="open-file">Open a saved file…</button></li>
+          <li><button role="menuitem" data-cmd="save">Save backup file…</button></li>
+          <li><button role="menuitem" data-cmd="print">Print paper wallets…</button></li>
+          <li class="sep" role="separator"></li>
+          <li><button role="menuitem" data-cmd="lock">Lock and clear</button></li>
+        </ul></div>
+      <div class="menu"><button class="mbtn" aria-haspopup="true">Keys</button>
+        <ul class="drop" role="menu" hidden>
+          <li><button role="menuitem" data-cmd="generate">Make wallets</button></li>
+          <li><button role="menuitem" data-cmd="import">Check a private key…</button></li>
+        </ul></div>
+      <div class="menu"><button class="mbtn" aria-haspopup="true">Help</button>
+        <ul class="drop" role="menu" hidden>
+          <li><button role="menuitem" data-open="readme">readme.txt</button></li>
+        </ul></div>
+    </div>
+
+    <div class="ticker" aria-hidden="true">
+      <div class="marquee">
+        <div class="track"><span>one secret, not two</span><span>no seed phrase</span><span>no sign-up</span><span>nothing leaves your browser</span><span>keep two copies of the file</span><span>lose the file, lose the coins</span></div>
+        <div class="track"><span>one secret, not two</span><span>no seed phrase</span><span>no sign-up</span><span>nothing leaves your browser</span><span>keep two copies of the file</span><span>lose the file, lose the coins</span></div>
+      </div>
+    </div>
+
+    <div class="body">
+      <p class="why"><b>One secret per wallet, not two.</b> Normal wallets have a private key <em>and</em> a seed phrase, and the phrase can unlock everything. Here each wallet is only a private key. There is no phrase to steal, lose or photograph.</p>
+
+      <ol class="steps" id="steps" aria-label="Steps">
+        <li data-step="1"><b>1</b> Make a wallet</li>
+        <li data-step="2"><b>2</b> Save the backup file</li>
+        <li data-step="3"><b>3</b> Copy it somewhere safe</li>
+      </ol>
+
+      <div class="row">
+        <label class="inline">How many wallets? <select id="count">
+          <option value="1">1</option><option value="5">5</option><option value="20">20</option><option value="100">100</option>
+        </select></label>
+        <button class="btn primary" id="b-generate">Make wallets</button>
+        <button class="btn" id="b-open">Open a saved file…</button>
+      </div>
+
+      <div class="listhead"><span id="pool-title">Your wallets: 0</span><span class="hint" id="pool-state"></span></div>
+      <div class="list sunken" id="list-wrap">
+        <table id="list">
+          <thead><tr><th class="n">#</th><th>Wallet address (safe to share)</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <p class="empty" id="empty">No wallets yet. Press "Make wallets".</p>
+      </div>
+
+      <div class="row end">
+        <button class="btn" id="b-details" disabled>Open wallet…</button>
+        <button class="btn" id="b-print" disabled>Print…</button>
+        <button class="btn primary" id="b-save" disabled>Save backup file…</button>
+      </div>
+    </div>
+    <footer class="status">
+      <span id="st-main">Ready</span>
+      <span id="st-rand">mouse samples: 0</span>
+      <span id="st-net">network: none</span>
+    </footer>
+  </section>
+
+  <!-- ===== readme ===== -->
+  <section class="win" id="w-readme" aria-labelledby="t-readme" hidden>
+    <header class="titlebar">
+      <svg class="px sm"><use href="#i-doc"/></svg>
+      <h2 id="t-readme">readme.txt - Notepad</h2>
+      <button class="tb" data-act="min" aria-label="Minimize">_</button>
+      <button class="tb" data-act="max" aria-label="Maximize">&#9633;</button>
+      <button class="tb" data-act="close" aria-label="Close">x</button>
+    </header>
+    <div class="paper sunken">
+<h3>WHY NO SEED PHRASE?</h3>
+<p>A normal wallet gives you two secrets: a private key and a seed phrase (12 or 24 words). The seed phrase is a master password. Anyone who sees it can rebuild every wallet made from it, and people leave it in notes, photos and cloud backups.</p>
+<p>Here there is only one secret per wallet: its private key. Each key is random and separate, so there is no master phrase, and one leaked key cannot open the others.</p>
+<h3>HOW TO USE IT</h3>
+<ol>
+<li>Press Make wallets.</li>
+<li>Press Save backup file. This file holds your private keys. It is your only backup.</li>
+<li>Copy the file to two other places (a USB stick, another computer).</li>
+<li>Send a small amount to a wallet address first, then send it back out to check it works.</li>
+</ol>
+<h3>WORDS EXPLAINED</h3>
+<ul>
+<li><b>Wallet address:</b> where people send coins. Safe to share.</li>
+<li><b>Private key:</b> the secret that lets you spend. Never share it.</li>
+<li><b>Backup file:</b> a list of your private keys. Lose every copy and the coins are gone. Nobody can reset it.</li>
+<li><b>Passphrase:</b> an optional password that locks the file. If you forget it, the file cannot be opened.</li>
+</ul>
+<h3>THE TRADE-OFF</h3>
+<p>Without a seed phrase, new wallets are not covered by your old backup. Save a new backup file every time you make or add wallets.</p>
+<h3>CAN I TRUST THIS PAGE?</h3>
+<p>The page is set up so it cannot make any network request, so it has no way to send a key anywhere. You can check this in your browser's developer tools. For larger amounts, save this page, disconnect from the internet, and open it from your own disk.</p>
+<p>Printing a paper wallet puts private keys on paper and in the printer's queue. Use a printer you trust.</p>
+<p class="small">To use a wallet in Phantom, Solflare or Backpack, choose "Import private key" (not "recovery phrase") and paste the private key.</p>
+    </div>
+    <footer class="status"><span>Ln 1, Col 1</span></footer>
+  </section>
+
+  <!-- ===== key details ===== -->
+  <section class="win" id="w-key" aria-labelledby="t-key" hidden>
+    <header class="titlebar">
+      <svg class="px sm"><use href="#i-key"/></svg>
+      <h2 id="t-key">Key details</h2>
+      <button class="tb" data-act="close" aria-label="Close">x</button>
+    </header>
+    <div class="body">
+      <p class="label" id="k-type"></p>
+      <div class="qrline">
+        <div class="qr sunken" id="k-qr"></div>
+        <div class="grow">
+          <p class="label">Wallet address (safe to share). People send coins here.</p>
+          <p class="mono sunken boxed" id="k-addr"></p>
+          <div class="row">
+            <button class="btn" id="k-copy-addr">Copy address</button>
+            <a class="btn" id="k-explorer" target="_blank" rel="noopener noreferrer">View on Solscan</a>
+          </div>
+        </div>
+      </div>
+      <fieldset class="group danger">
+        <legend>Private key: SECRET. Whoever has it can spend this wallet.</legend>
+        <p class="mono sunken boxed" id="k-secret">&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</p>
+        <div class="qr small sunken" id="k-qr-secret" hidden></div>
+        <div class="row">
+          <button class="btn" id="k-reveal">Show private key</button>
+          <button class="btn" id="k-copy-secret" disabled>Copy</button>
+          <button class="btn" id="k-copy-json" disabled>Copy as keypair.json</button>
+        </div>
+      </fieldset>
+    </div>
+    <footer class="status"><span id="st-key">Private key hidden</span></footer>
+  </section>
+
+  <!-- ===== check / add a key ===== -->
+  <section class="win" id="w-import" aria-labelledby="t-import" hidden>
+    <header class="titlebar">
+      <svg class="px sm"><use href="#i-lens"/></svg>
+      <h2 id="t-import">Check a private key</h2>
+      <button class="tb" data-act="close" aria-label="Close">x</button>
+    </header>
+    <div class="body">
+      <p>Paste a Solana private key to see which wallet address it belongs to. Use this to check a key before you rely on it. (It can be the long text key, or the list of 64 numbers from a <code>keypair.json</code> file.)</p>
+      <textarea id="im-text" class="sunken" rows="3" spellcheck="false" autocomplete="off" aria-label="Private key"></textarea>
+      <p class="mono boxed sunken" id="im-result" aria-live="polite">Nothing pasted yet.</p>
+      <div class="row end">
+        <button class="btn" id="im-clear">Clear</button>
+        <button class="btn primary" id="im-add" disabled>Add to my wallets</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== dialog (messages, passphrase, progress) ===== -->
+  <section class="win dialog" id="w-dialog" role="alertdialog" aria-labelledby="t-dialog" aria-describedby="d-msg" hidden>
+    <header class="titlebar">
+      <h2 id="t-dialog">Keypool</h2>
+    </header>
+    <form class="body" id="d-form" autocomplete="off">
+      <p id="d-msg"></p>
+      <div id="d-fields"></div>
+      <div class="xp" id="d-bar" hidden><div class="box"></div><div class="box"></div><div class="box"></div></div>
+      <div class="row end" id="d-buttons"></div>
+    </form>
+  </section>
+</main>
+
+<div id="shade" hidden></div>
+
+<aside id="balloon" role="status" hidden>
+  <svg class="px"><use href="#i-coin"/></svg>
+  <div><b>One secret, not two</b><p>No seed phrase to lose or steal. Your backup file is the only backup, so save it and copy it somewhere safe.</p></div>
+  <button class="x" aria-label="Dismiss">x</button>
+</aside>
+
+<div id="startmenu" hidden>
+  <div class="side"><span>Keypool 98</span></div>
+  <ul>
+    <li><button data-open="main"><svg class="px"><use href="#i-key"/></svg>Keypool</button></li>
+    <li><button data-open="readme"><svg class="px"><use href="#i-doc"/></svg>readme.txt</button></li>
+    <li><button data-open="import"><svg class="px"><use href="#i-lens"/></svg>Check a private key</button></li>
+    <li class="sep"></li>
+    <li><button data-cmd="lock"><svg class="px"><use href="#i-coin"/></svg>Lock and clear…</button></li>
+  </ul>
+</div>
+
+<footer id="taskbar">
+  <button class="start" id="start"><svg class="px sm"><use href="#i-coin"/></svg><b>Start</b></button>
+  <div class="tasks" id="tasks"></div>
+  <div class="tray sunken"><span id="net" title="This page's security policy blocks all network requests">no network</span><span id="clock">--:--</span></div>
+</footer>
+
+<div id="print" aria-hidden="true"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

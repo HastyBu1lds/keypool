@@ -1,0 +1,30 @@
+{
+  "name": "keypool",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "build": "node build-drop.mjs",
+    "build:win98": "node build.mjs",
+    "build:swiss": "node build-swiss.mjs",
+    "test": "node --test test/core.test.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fontsource-variable/gabarito": "^5.3.0",
+    "@fontsource-variable/public-sans": "^5.3.0",
+    "@fontsource/be-vietnam-pro": "^5.3.0",
+    "@fontsource/cutive-mono": "^5.3.0",
+    "@fontsource/vt323": "^5.3.0",
+    "@noble/curves": "^1.9.7",
+    "@noble/hashes": "^1.8.0",
+    "@scure/base": "^1.2.6",
+    "esbuild": "^0.25.12",
+    "qrcode-generator": "^1.4.4"
+  }
+}

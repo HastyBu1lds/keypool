@@ -1,0 +1,13 @@
+[build]
+  command = "npm run build"
+  publish = "public-drop"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Serve IPFS files at /ipfs/<cid> on this domain so a coin's on-chain metadata link can use the website's domain.
+[[redirects]]
+  from = "/ipfs/*"
+  to = "https://gateway.pinata.cloud/ipfs/:splat"
+  status = 200
+  force = true
