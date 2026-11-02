@@ -4,6 +4,8 @@ Make Solana wallets with **no seed phrase**. Each wallet is one random private k
 
 Docs, with ways to check every claim yourself: **https://keypool.fun/docs.html**
 
+**$KEYPOOL token:** contract address `GkxZqiVYioqrJkStPeW3sebPMgUzycRkvKS9aMdbqGyv` (also at https://keypool.fun/docs.html#token). The token is not needed to use the app, and its creator fees are meant to pay for hosting the site. Always check an address against the docs page before you trade.
+
 > **Status: not audited.** No independent security review has been done. Try a small amount first, send it out again, and only then use more. Lose every copy of your backup file (and any passphrase) and the coins are gone.
 
 ## What it does

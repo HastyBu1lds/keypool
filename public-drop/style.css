@@ -128,6 +128,9 @@ h1 { font-size: clamp(3rem, 8vw, 6.4rem); line-height: .95; letter-spacing: -.04
 .ca .tag { color: var(--sea); }
 .ca-val { margin: 4px 0 8px; font: 800 1.5rem/1.2 var(--display); letter-spacing: -.02em; color: var(--ink); word-break: break-all; }
 .ca-val.mono { font-family: var(--mono); font-size: .95rem; font-weight: 600; letter-spacing: 0; }
+.ca-val.mono { user-select: all; }
+.ca-inline { display: inline-block; word-break: break-all; user-select: all; }
+.ca-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 12px; }
 .ca-note { margin: 0; font-size: .95rem; opacity: .85; }
 .toc { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.4em; }
 .toc a { padding: 8px 16px; border-radius: 999px; background: #fff; text-decoration: none; font: 600 .92rem var(--display); box-shadow: 0 6px 18px rgba(11, 58, 74, .08); transition: background-color 300ms var(--ease); }

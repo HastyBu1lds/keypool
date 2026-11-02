@@ -109,11 +109,20 @@ font-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-
       <h2 id="token">The $KEYPOOL token</h2>
       <div class="ca" role="group" aria-label="Token contract address">
         <p class="tag">Contract address</p>
-        <!-- WHEN THE TOKEN LAUNCHES: replace the line below with the address, e.g.
-             <p class="ca-val mono">THE_ADDRESS</p> and add a link: <a href="https://solscan.io/token/THE_ADDRESS" target="_blank" rel="noopener noreferrer">View on Solscan</a> -->
-        <p class="ca-val">Not launched yet</p>
-        <p class="ca-note">The token has not launched, so there is no contract address yet. When it does, the address will be posted on this page and on the official X account, <a href="https://x.com/SolKeypool" target="_blank" rel="noopener noreferrer">@SolKeypool</a>. If you see a different address anywhere else, treat it as fake.</p>
+        <p class="ca-val mono" id="ca-addr">GkxZqiVYioqrJkStPeW3sebPMgUzycRkvKS9aMdbqGyv</p>
+        <p class="ca-actions">
+          <button class="btn small teal" type="button" data-copy="GkxZqiVYioqrJkStPeW3sebPMgUzycRkvKS9aMdbqGyv" id="ca-copy">Copy address</button>
+          <a class="btn small ghost-dark" href="https://solscan.io/token/GkxZqiVYioqrJkStPeW3sebPMgUzycRkvKS9aMdbqGyv" target="_blank" rel="noopener noreferrer">View on Solscan</a>
+        </p>
+        <p class="ca-note">This is the only official address. It is also posted on the official X account, <a href="https://x.com/SolKeypool" target="_blank" rel="noopener noreferrer">@SolKeypool</a>. If you see a different address anywhere else, treat it as fake, and always check the address matches this page before you trade.</p>
       </div>
+      <h3>What you can check on the blockchain</h3>
+      <p>Open the address on Solscan (or any Solana explorer) and you can see these for yourself:</p>
+      <ul>
+        <li><strong>Supply:</strong> 1,000,000,000 tokens (6 decimals).</li>
+        <li><strong>Mint authority:</strong> none. Nobody can create more tokens.</li>
+        <li><strong>Freeze authority:</strong> none. Nobody can freeze your tokens.</li>
+      </ul>
       <h3>What the fees are for</h3>
       <p>The creator fees earned from trading $KEYPOOL are meant to pay for hosting keypool.fun: the domain and the servers that deliver this page. Nothing more is promised. There are no returns, no buybacks and no rewards.</p>
       <h3>What the token is not</h3>
@@ -147,5 +156,6 @@ font-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-
     <a href="index.html">Back to Keypool</a>
   </div>
 </footer>
+<script src="docs.js"></script>
 </body>
 </html>
